@@ -3,10 +3,21 @@ const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
+// =============================== VARIABLES =============================== //
+
+let mouseX = canvas.width / 2;
+let mouseY = canvas.height / 2;
+
+let speed = 5;
+let player_radius = 50
+
+let playing = true;
+
+// Set up player
 const player = {
     x: window.innerWidth / 2,
     y: window.innerHeight / 2,
-    radius: 50,
+    radius: player_radius,
     startAngle: 0,
     endAngle: Math.PI * 2,
     drawPlayer: () => {
@@ -17,20 +28,34 @@ const player = {
     }
 }
 
-let mouseX = canvas.width/2;
-let mouseY = canvas.height/2;
+// Food managment
+let food = []
+let pieces_on_screen = 20
 
-let speed = 5;
-let playing = true;
 
+
+// =============================== EVENT LISTENERS =============================== //
+
+// Follow mouse position
 window.addEventListener('mousemove', (e) => {
     mouseX = e.clientX;
     mouseY = e.clientY;
 });
 
-// Food managment
-let food = []
-let pieces_on_screen = 20
+
+// Resume button (esc)
+window.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+        playing = !playing;
+        if (playing) play()
+    };
+});
+
+// Mouse move
+window.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+});
 
 // =============================== CONTROL FOOD f(x) =============================== //
 
@@ -55,9 +80,11 @@ function control_food(dx, dy, distance) {
 
     // Render food
     food.forEach((item) => {
-        if (distance > 0) {
+        if (distance > player_radius) {
             item.x -= (dx / distance) * speed;
             item.y -= (dy / distance) * speed;
+        } else {
+            food.splice(food.indexOf(item), 1)
         }
         
         ctx.fillStyle = item.color;
@@ -66,13 +93,6 @@ function control_food(dx, dy, distance) {
         ctx.fill()
     });
 };
-
-
-// Follow mouse position
-window.addEventListener('mousemove', (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-});
 
 
 // =============================== PLAY f(x) =============================== //
