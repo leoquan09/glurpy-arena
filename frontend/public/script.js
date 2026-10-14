@@ -80,7 +80,13 @@ function control_food(dx, dy, distance) {
 
     // Render food
     food.forEach((item) => {
-        if (distance > 0) {
+        fdx = item.x - player.x
+        fdy = item.y - player.y
+
+        distance_from_player = Math.sqrt(fdx * fdx + fdy * fdy)
+
+        // If food is outside player body
+        if (distance_from_player > (player_radius)) {
             item.x -= (dx / distance) * speed;
             item.y -= (dy / distance) * speed;
         } else {
