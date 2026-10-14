@@ -32,20 +32,9 @@ window.addEventListener('mousemove', (e) => {
 let food = []
 let pieces_on_screen = 20
 
-// =============================== RENDER FOOD f(x) =============================== //
+// =============================== CONTROL FOOD f(x) =============================== //
 
-function render_food() {
-    food.forEach((item) => {
-        ctx.fillStyle = item.color;
-        ctx.beginPath()
-        ctx.arc(item.x, item.y, 10, 0, Math.PI * 2)
-        ctx.fill()
-    });
-}
-
-// =============================== CALCULATE FOOD f(x) =============================== //
-
-function calculate_food(dx, dy, distance) {
+function control_food(dx, dy, distance) {
     curr_on_screen = 20 - food.length;
 
     // Add new dots if 20 aren't on screen
@@ -63,6 +52,19 @@ function calculate_food(dx, dy, distance) {
         curr_on_screen -= 1;
     };
     
+
+    // Render food
+    food.forEach((item) => {
+        if (distance > 0) {
+            item.x -= (dx / distance) * speed;
+            item.y -= (dy / distance) * speed;
+        }
+        
+        ctx.fillStyle = item.color;
+        ctx.beginPath()
+        ctx.arc(item.x, item.y, 10, 0, Math.PI * 2)
+        ctx.fill()
+    });
 };
 
 
@@ -84,9 +86,7 @@ function play() {
     let dy = mouseY - player.y;
     let distance = Math.sqrt(dx * dx + dy * dy);
 
-    calculate_food(dx, dy, distance)
-
-    render_food();
+    control_food(dx, dy, distance);
     
     player.drawPlayer();
     
