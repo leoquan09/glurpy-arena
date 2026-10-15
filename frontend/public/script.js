@@ -9,7 +9,6 @@ let mouseX = canvas.width / 2;
 let mouseY = canvas.height / 2;
 
 let speed = 5;
-let player_radius = 50
 
 let playing = true;
 
@@ -17,7 +16,7 @@ let playing = true;
 const player = {
     x: window.innerWidth / 2,
     y: window.innerHeight / 2,
-    radius: player_radius,
+    radius: 25,
     startAngle: 0,
     endAngle: Math.PI * 2,
     drawPlayer: () => {
@@ -32,7 +31,22 @@ const player = {
 let food = []
 let pieces_on_screen = 20
 
-
+// Food reset function
+function check_off_screen_food(x, y) {
+    if (x < 0) {
+        x += window.innerWidth;
+        y = Math.random() * window.innerHeight;
+    } else if (x > window.innerWidth) {
+        x -= window.innerWidth;
+        y = Math.random() * window.innerHeight;
+    } else if (y < 0) {
+        y += window.innerHeight;
+        x = Math.random() * window.innerWidth;
+    } else if (y > window.innerHeight) {
+        y -= window.innerHeight;
+        x = Math.random() * window.innerWidth;
+    }
+}
 
 // =============================== EVENT LISTENERS =============================== //
 
@@ -78,26 +92,30 @@ function control_food(dx, dy, distance) {
     };
     
 
-    // Render food
-    food.forEach((item) => {
+    // Eat food
+    food = food.filter((item) => {
         fdx = item.x - player.x
         fdy = item.y - player.y
 
         distance_from_player = Math.sqrt(fdx * fdx + fdy * fdy)
 
         // If food is outside player body
-        if (distance_from_player > (player_radius)) {
+        if (distance_from_player > player.radius) {
             item.x -= (dx / distance) * speed;
             item.y -= (dy / distance) * speed;
         } else {
-            food.splice(food.indexOf(item), 1)
+            // player.radius += 1
+            return false
         }
-        
+        return true
+    });
+
+    food.forEach((item) => {
         ctx.fillStyle = item.color;
         ctx.beginPath()
         ctx.arc(item.x, item.y, 10, 0, Math.PI * 2)
         ctx.fill()
-    });
+    })
 };
 
 
