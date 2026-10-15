@@ -5,11 +5,10 @@ canvas.height = window.innerHeight;
 
 // =============================== VARIABLES =============================== //
 
-let mouseX = canvas.width / 2;
-let mouseY = canvas.height / 2;
+let mouseX = 0;
+let mouseY = 0;
 
 let speed = 5;
-
 let playing = true;
 
 // Set up player
@@ -30,23 +29,6 @@ const player = {
 // Food managment
 let food = []
 let pieces_on_screen = 20
-
-// Food reset function
-function check_off_screen_food(x, y) {
-    if (x < 0) {
-        x += window.innerWidth;
-        y = Math.random() * window.innerHeight;
-    } else if (x > window.innerWidth) {
-        x -= window.innerWidth;
-        y = Math.random() * window.innerHeight;
-    } else if (y < 0) {
-        y += window.innerHeight;
-        x = Math.random() * window.innerWidth;
-    } else if (y > window.innerHeight) {
-        y -= window.innerHeight;
-        x = Math.random() * window.innerWidth;
-    }
-}
 
 // =============================== EVENT LISTENERS =============================== //
 
@@ -71,6 +53,28 @@ window.addEventListener('mousemove', (e) => {
     mouseY = e.clientY;
 });
 
+// =============================== PLAYER FORMULAS =============================== //
+
+
+// =============================== RESET OFF-SCREEN FOOD COORDS f(x) =============================== //
+
+function check_off_screen_food(item) {
+    if (item.x < 0) {
+        item.x += window.innerWidth;
+        item.y = Math.random() * window.innerHeight;
+    } else if (item.x > window.innerWidth) {
+        item.x -= window.innerWidth;
+        item.y = Math.random() * window.innerHeight;
+    } else if (item.y < 0) {
+        item.y += window.innerHeight;
+        item.x = Math.random() * window.innerWidth;
+    } else if (item.y > window.innerHeight) {
+        item.y -= window.innerHeight;
+        item.x = Math.random() * window.innerWidth;
+    }
+}
+
+
 // =============================== CONTROL FOOD f(x) =============================== //
 
 function control_food(dx, dy, distance) {
@@ -94,6 +98,7 @@ function control_food(dx, dy, distance) {
 
     // Eat food
     food = food.filter((item) => {
+        check_off_screen_food(item);
         fdx = item.x - player.x
         fdy = item.y - player.y
 
@@ -104,7 +109,7 @@ function control_food(dx, dy, distance) {
             item.x -= (dx / distance) * speed;
             item.y -= (dy / distance) * speed;
         } else {
-            // player.radius += 1
+            player.radius += 1
             return false
         }
         return true
