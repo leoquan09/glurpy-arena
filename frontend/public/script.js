@@ -9,7 +9,6 @@ let mouseX = canvas.width / 2;
 let mouseY = canvas.height / 2;
 
 let speed = 5;
-let player_radius = 50
 
 let playing = true;
 
@@ -17,7 +16,7 @@ let playing = true;
 const player = {
     x: window.innerWidth / 2,
     y: window.innerHeight / 2,
-    radius: player_radius,
+    radius: 50,
     startAngle: 0,
     endAngle: Math.PI * 2,
     drawPlayer: () => {
@@ -86,7 +85,7 @@ function control_food(dx, dy, distance) {
         distance_from_player = Math.sqrt(fdx * fdx + fdy * fdy)
 
         // If food is outside player body
-        if (distance_from_player > (player_radius)) {
+        if (distance_from_player > (player.radius)) {
             item.x -= (dx / distance) * speed;
             item.y -= (dy / distance) * speed;
         } else {
