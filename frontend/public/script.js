@@ -11,6 +11,20 @@ let mouseY = 0;
 let speed = 5;
 let playing = true;
 
+let backgroundBorder = {
+    x: innerWidth / 2,
+    y: innerHeight /2,
+    radius: 100,
+    startAngle: 0,
+    endAngle: Math.PI * 2,
+    drawBorder: () => {
+        ctx.fillStyle = '#006400'
+        ctx.beginPath();
+        ctx.arc(backgroundBorder.x, backgroundBorder.y, backgroundBorder.radius, backgroundBorder.startAngle, backgroundBorder.endAngle);
+        ctx.fill();
+    }
+};
+
 // Set up player
 const player = {
     x: window.innerWidth / 2,
@@ -29,6 +43,7 @@ const player = {
 // Food managment
 let food = []
 let pieces_on_screen = 20
+count = 0
 
 // =============================== EVENT LISTENERS =============================== //
 
@@ -55,6 +70,12 @@ window.addEventListener('mousemove', (e) => {
 
 // =============================== PLAYER FORMULAS =============================== //
 
+function expand_radius() {
+    // Pieces of food eaten
+    let expand_by = 2*(Math.pow(0.01, 0.005*count))
+    count += 1
+    return expand_by
+}
 
 // =============================== RESET OFF-SCREEN FOOD COORDS f(x) =============================== //
 
@@ -109,7 +130,7 @@ function control_food(dx, dy, distance) {
             item.x -= (dx / distance) * speed;
             item.y -= (dy / distance) * speed;
         } else {
-            player.radius += 1
+            player.radius += expand_radius()
             return false
         }
         return true
@@ -129,6 +150,7 @@ function play() {
     if (!playing) return;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    backgroundBorder.drawBorder();
     
     // Distance from player to mouse
     let dx = mouseX - player.x;
