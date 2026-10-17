@@ -3,6 +3,15 @@ const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
+
+// ============================== SOCKET CODE ============================= //
+const socket = io()
+
+socket.on('connect', () => {
+    console.log('testtt');
+})
+
+
 // =============================== VARIABLES =============================== //
 
 let mouseX = 0;
@@ -13,8 +22,8 @@ let playing = true;
 
 let backgroundBorder = {
     x: innerWidth / 2,
-    y: innerHeight /2,
-    radius: 100,
+    y: innerHeight / 2,
+    radius: 500,
     startAngle: 0,
     endAngle: Math.PI * 2,
     drawBorder: () => {
@@ -60,12 +69,6 @@ window.addEventListener('keydown', (event) => {
         playing = !playing;
         if (playing) play()
     };
-});
-
-// Mouse move
-window.addEventListener('mousemove', (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
 });
 
 // =============================== PLAYER FORMULAS =============================== //
@@ -144,18 +147,24 @@ function control_food(dx, dy, distance) {
     })
 };
 
-
 // =============================== PLAY f(x) =============================== //
 function play() {
     if (!playing) return;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    backgroundBorder.drawBorder();
     
     // Distance from player to mouse
     let dx = mouseX - player.x;
     let dy = mouseY - player.y;
     let distance = Math.sqrt(dx * dx + dy * dy);
+
+    // If food is outside player body
+    if (distance > 0) {
+        backgroundBorder.x -= (dx / distance) * speed;
+        backgroundBorder.y -= (dy / distance) * speed;
+    }    
+    
+    backgroundBorder.drawBorder();
 
     control_food(dx, dy, distance);
     
