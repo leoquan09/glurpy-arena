@@ -3,15 +3,6 @@ const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-
-// ============================== SOCKET CODE ============================= //
-const socket = io()
-
-socket.on('connect', () => {
-    console.log('testtt');
-})
-
-
 // =============================== VARIABLES =============================== //
 
 let mouseX = 0;
@@ -46,6 +37,14 @@ const player = {
         ctx.beginPath();
         ctx.arc(player.x, player.y, player.radius, player.startAngle, player.endAngle);
         ctx.fill();
+    },
+
+    respawn: () => {
+        playing = false;
+        alert("Respawning...");
+        backgroundBorder.x = innerWidth / 2;
+        backgroundBorder.y = innerHeight / 2;
+        playing = true
     }
 }
 
@@ -147,6 +146,31 @@ function control_food(dx, dy, distance) {
     })
 };
 
+
+// ============================== SOCKET CODE ============================= //
+const socket = io()
+
+socket.on('connect', () => {
+    console.log('clientside verification: complete');
+})
+
+let players = [];
+let id = null;
+
+function sendCoords(x, y) {
+    socket.emit('screen refresh', {
+        x: x,
+        y: y
+    });
+};
+
+function getCoords() {
+    socket.on('screen refresh', (socket) => {
+        
+    });
+}
+
+
 // =============================== PLAY f(x) =============================== //
 function play() {
     if (!playing) return;
@@ -154,18 +178,30 @@ function play() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
     // Distance from player to mouse
-    let dx = mouseX - player.x;
-    let dy = mouseY - player.y;
-    let distance = Math.sqrt(dx * dx + dy * dy);
+    const dx = mouseX - player.x;
+    const dy = mouseY - player.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
 
-    // If food is outside player body
+    // Distance from border center to player
+    const bdx = player.x - backgroundBorder.x;
+    const bdy = player.y - backgroundBorder.y;
+    const bd_dist = Math.sqrt((bdx * bdx) + (bdy * bdy))
+
+    sendCoords(bdx, bdy);
+    // Move background border relative to player
+
+    // If mouse position is not at center (0, 0)
     if (distance > 0) {
-        backgroundBorder.x -= (dx / distance) * speed;
-        backgroundBorder.y -= (dy / distance) * speed;
-    }    
+        if (bd_dist < backgroundBorder.radius) {
+            backgroundBorder.x -= (dx / distance) * speed;
+            backgroundBorder.y -= (dy / distance) * speed;
+        } else {
+            player.respawn()
+        }
+    }
     
     backgroundBorder.drawBorder();
-
+    
     control_food(dx, dy, distance);
     
     player.drawPlayer();

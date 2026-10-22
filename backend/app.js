@@ -9,10 +9,14 @@ const io = new Server(server);
 
 io.on('connection', (socket) => {
     console.log('a user connected');
-});
+    socket.on('screen refresh', (data) => {
+        console.log(data, socket.id);
+    });
 
-io.on('disconnect', (socket) => {
-    console.log('a user disconnected');
+
+    socket.on('disconnect', () => {
+        console.log(`${socket.id} disconnected`);
+    });
 });
 
 app.use(express.static(path.join(__dirname, '..', 'frontend', 'public')));
