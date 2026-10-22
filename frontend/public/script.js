@@ -3,7 +3,39 @@ const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
+
+// =============================== PLAYER FORMULAS =============================== //
+
+function expand_radius() {
+    // Pieces of food eaten
+    let expand_by = 2*(Math.pow(0.01, 0.005*count))
+    count += 1
+    return expand_by
+}
+
+function change_speed() {
+    speed = 5 * (Math.pow(0.99, 0.1*count))
+}
+
+function random_respawn_coords() {
+    backgroundBorder.x = Math.random() * backgroundBorder.radius;
+    backgroundBorder.y = Math.random() * backgroundBorder.radius;
+
+    const bdx = player.x - backgroundBorder.x;
+    const bdy = player.y - backgroundBorder.y;
+    const bd_dist = Math.sqrt((bdx * bdx) + (bdy * bdy))
+
+    if (bd_dist >= backgroundBorder.radius) {
+        random_respawn_coords()
+    }
+}
+
 // =============================== VARIABLES =============================== //
+let username = null;
+
+while (username === null || username.trim() === '') {
+    username = prompt('Enter a username: ');
+};
 
 let mouseX = 0;
 let mouseY = 0;
@@ -42,8 +74,7 @@ const player = {
     respawn: () => {
         playing = false;
         alert("Respawning...");
-        backgroundBorder.x = innerWidth / 2;
-        backgroundBorder.y = innerHeight / 2;
+        random_respawn_coords()
         playing = true
     }
 }
@@ -70,14 +101,7 @@ window.addEventListener('keydown', (event) => {
     };
 });
 
-// =============================== PLAYER FORMULAS =============================== //
 
-function expand_radius() {
-    // Pieces of food eaten
-    let expand_by = 2*(Math.pow(0.01, 0.005*count))
-    count += 1
-    return expand_by
-}
 
 // =============================== RESET OFF-SCREEN FOOD COORDS f(x) =============================== //
 
@@ -133,6 +157,7 @@ function control_food(dx, dy, distance) {
             item.y -= (dy / distance) * speed;
         } else {
             player.radius += expand_radius()
+            change_speed()
             return false
         }
         return true
@@ -150,26 +175,44 @@ function control_food(dx, dy, distance) {
 // ============================== SOCKET CODE ============================= //
 const socket = io()
 
-socket.on('connect', () => {
-    console.log('clientside verification: complete');
-})
-
 let players = [];
 let id = null;
 
+socket.on('connect', () => {
+    console.log('clientside verification: complete');
+    id = socket.id;
+})
+
 function sendCoords(x, y) {
     socket.emit('screen refresh', {
+        username: username,
         x: x,
         y: y
     });
 };
 
 function getCoords() {
-    socket.on('screen refresh', (socket) => {
-        
-    });
-}
+    socket.on('player update', (data) => {
+        if (data.id === id) return;
 
+        let existingPlayer = players.find(p => p.id === data.id);
+
+        if (existingPlayer) {
+            existingPlayer.x = data.x;
+            existingPlayer.y = data.y;
+            console.log(data);
+        } else {
+            players.push({
+                id: data.id,
+                username: data.username,
+                x: data.x,
+                y: data.y
+            });
+            console.log(data)
+        };
+        console.log(players);
+    });
+};
 
 // =============================== PLAY f(x) =============================== //
 function play() {
@@ -187,10 +230,10 @@ function play() {
     const bdy = player.y - backgroundBorder.y;
     const bd_dist = Math.sqrt((bdx * bdx) + (bdy * bdy))
 
+    // Broadcast coordinates to other players
     sendCoords(bdx, bdy);
-    // Move background border relative to player
 
-    // If mouse position is not at center (0, 0)
+    // Move background border relative to player
     if (distance > 0) {
         if (bd_dist < backgroundBorder.radius) {
             backgroundBorder.x -= (dx / distance) * speed;
@@ -209,4 +252,5 @@ function play() {
     requestAnimationFrame(play);
 }
 
+getCoords();
 play();
