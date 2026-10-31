@@ -46,8 +46,7 @@ async function checkPing() {
 
 app.get('/', async (req, res) => {
     const pingStatus = await checkPing()
-
-    res.render('home', {ping: pingStatus.time})
+    res.render('home', {ping: pingStatus.time.toFixed(2)})
 });
 
 app.get('/game', (req, res) => {
