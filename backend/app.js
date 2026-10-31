@@ -23,6 +23,7 @@ io.on('connection', (socket) => {
 
     socket.on('disconnect', () => {
         console.log(`${socket.id} disconnected`);
+        socket.broadcast.emit('disconnection', socket.id);
     });
 });
 
@@ -31,6 +32,10 @@ app.use(express.static(path.join(__dirname, '..', 'frontend', 'public')));
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
+});
+
+app.get('/pause', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/pause.html'));
 });
 
 server.listen(3000, () => console.log('Server is up and running on localhost:3000'));
