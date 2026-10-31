@@ -31,11 +31,8 @@ function random_respawn_coords() {
 }
 
 // =============================== VARIABLES =============================== //
-let username = null;
-
-while (username === null || username.trim() === '') {
-    username = prompt('Enter a username: ');
-};
+const form = document.getElementsByClassName('play-form');
+const username = localStorage.getItem('username') ? localStorage.getItem('username') : alert('No username detected');
 
 let mouseX = 0;
 let mouseY = 0;
@@ -50,7 +47,7 @@ let backgroundBorder = {
     startAngle: 0,
     endAngle: Math.PI * 2,
     drawBorder: () => {
-        ctx.fillStyle = '#006400'
+        ctx.fillStyle = '#3c6544'
         ctx.beginPath();
         ctx.arc(backgroundBorder.x, backgroundBorder.y, backgroundBorder.radius, backgroundBorder.startAngle, backgroundBorder.endAngle);
         ctx.fill();
@@ -98,7 +95,7 @@ window.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
         playing = !playing;
         if (playing) { play() } 
-        else { window.location.href = "/pause"; }
+        else { window.location.href = "/"; }
     };
 });
 
@@ -261,7 +258,7 @@ function play() {
     player.drawPlayer();
     spawn_others(bdx, bdy);
     
-    requestAnimationFrame(play);
+    requestAnimationFrame(play);``
 };
 
 getCoords();

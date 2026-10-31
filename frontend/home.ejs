@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glurpy Arena</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="home.css">
+</head>
+
+<body>
+
+    <div class="grid-bg"></div>
+
+
+    <div class="card">
+        <div class="title-container">
+            <h1>GLURPY<span class="highlight">ARENA</span></h1>
+            <p class="subtitle">Conquer the grid, block by block.</p>
+        </div>
+
+        <form class="play-form" action="/game" method="GET">
+            <div class="input-group">
+                <input type="text" id="username" name="username" placeholder="Enter Username" maxlength="15" required
+                    autocomplete="off">
+            </div>
+
+            <button type="submit" class="btn-play">
+                PLAY NOW
+            </button>
+        </form>
+
+        <div class="card-footer">
+            <div class="stat"><span class="label">PLAYERS ONLINE</span> <span class="val">----</span></div>
+            <div class="stat"><span class="label">PING</span> <span class="val"><%= ping %></span></div>
+        </div>
+    </div>
+    <script>
+        const form = document.getElementsByClassName('play-form');
+        form.addEventListener('submit', () => {
+            localStorage.setItem('username', document.getElementsById('username').value);
+        });
+    </script>
+</body>
+
+</html> 

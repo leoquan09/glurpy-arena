@@ -7,6 +7,14 @@ const app = express();
 const server = createServer(app);
 const io = new Server(server);
 
+app.set('view engine', 'ejs');
+app.use(express.urlencoded({ extended: true }));
+app.set('views', path.join(__dirname, '..', 'frontend'));
+app.use(express.static(path.join(__dirname, '..', 'frontend', 'public')));
+
+
+const ping = require('ping');
+
 io.on('connection', (socket) => {
     console.log('a user connected');
     
@@ -27,15 +35,23 @@ io.on('connection', (socket) => {
     });
 });
 
+async function checkPing() {
+    const host = 'google.com';
+    const res = await ping.promise.probe(host, {
+        timeout: 10, // seconds
+    });
 
-app.use(express.static(path.join(__dirname, '..', 'frontend', 'public')));
+    return res;
+}
 
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
+app.get('/', async (req, res) => {
+    const pingStatus = await checkPing()
+
+    res.render('home', {ping: pingStatus.time})
 });
 
-app.get('/pause', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/pause.html'));
+app.get('/game', (req, res) => {
+    res.render('game');
 });
 
 server.listen(3000, () => console.log('Server is up and running on localhost:3000'));
