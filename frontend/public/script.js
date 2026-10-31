@@ -183,11 +183,12 @@ socket.on('connect', () => {
     id = socket.id;
 })
 
-function sendCoords(x, y) {
+function sendCoords(x, y, radius) {
     socket.emit('screen refresh', {
         username: username,
         x: x,
-        y: y
+        y: y,
+        radius: radius
     });
 };
 
@@ -206,11 +207,22 @@ function getCoords() {
                 id: data.id,
                 username: data.username,
                 x: data.x,
-                y: data.y
+                y: data.y,
+                radius: data.radius
             });
             console.log(data)
         };
         console.log(players);
+    });
+};
+
+// ========================== SPAWN OTHER PLAYERS ========================== //
+function spawn_others() {
+    players.forEach((player) => {
+        ctx.fillStyle = 'white'
+        ctx.beginPath();
+        ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+        ctx.fill();
     });
 };
 
@@ -231,7 +243,8 @@ function play() {
     const bd_dist = Math.sqrt((bdx * bdx) + (bdy * bdy))
 
     // Broadcast coordinates to other players
-    sendCoords(bdx, bdy);
+    sendCoords(bdx, bdy, player.radius);
+    spawn_others()
 
     // Move background border relative to player
     if (distance > 0) {
