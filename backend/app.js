@@ -11,20 +11,21 @@ io.on('connection', (socket) => {
     console.log('a user connected');
     
     socket.on('screen refresh', (data) => {
-        console.log(data, socket.id);
         socket.broadcast.emit('player update', {
             id: socket.id,
             username: data.username,
-            x: data.x,
-            y: data.y
+            borderX: data.borderX,
+            borderY: data.borderY,
+            radius: data.radius
         });
+        console.log(data)
     });
-
 
     socket.on('disconnect', () => {
         console.log(`${socket.id} disconnected`);
     });
 });
+
 
 app.use(express.static(path.join(__dirname, '..', 'frontend', 'public')));
 

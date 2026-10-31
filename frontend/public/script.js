@@ -46,7 +46,7 @@ let playing = true;
 let backgroundBorder = {
     x: innerWidth / 2,
     y: innerHeight / 2,
-    radius: 500,
+    radius: 1000,
     startAngle: 0,
     endAngle: Math.PI * 2,
     drawBorder: () => {
@@ -171,23 +171,16 @@ function control_food(dx, dy, distance) {
     })
 };
 
-
-// ============================== SOCKET CODE ============================= //
-const socket = io()
-
-let players = [];
+// ================================ socket code ================================
+const socket = io();
 let id = null;
+let players = []
 
-socket.on('connect', () => {
-    console.log('clientside verification: complete');
-    id = socket.id;
-})
-
-function sendCoords(x, y, radius) {
+function sendCoords(borderX, borderY, radius) {
     socket.emit('screen refresh', {
         username: username,
-        x: x,
-        y: y,
+        borderX: borderX,
+        borderY: borderY,
         radius: radius
     });
 };
@@ -199,71 +192,73 @@ function getCoords() {
         let existingPlayer = players.find(p => p.id === data.id);
 
         if (existingPlayer) {
-            existingPlayer.x = data.x;
-            existingPlayer.y = data.y;
-            console.log(data);
+            existingPlayer.borderX = data.borderX;
+            existingPlayer.borderY = data.borderY;
+            existingPlayer.radius = data.radius;
         } else {
             players.push({
                 id: data.id,
                 username: data.username,
-                x: data.x,
-                y: data.y,
+                borderX: data.borderX,
+                borderY: data.borderY,
                 radius: data.radius
             });
-            console.log(data)
         };
-        console.log(players);
+        console.log(data)
     });
 };
 
-// ========================== SPAWN OTHER PLAYERS ========================== //
-function spawn_others() {
-    players.forEach((player) => {
-        ctx.fillStyle = 'white'
-        ctx.beginPath();
-        ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
-        ctx.fill();
-    });
-};
+function spawn_others(bdx, bdy) {
+    players.forEach((enemy) => {
+        const screenX = player.x + (enemy.borderX - bdx);
+        const screenY = player.y + (enemy.borderY - bdy);
 
-// =============================== PLAY f(x) =============================== //
+        if (enemy.radius) {
+            ctx.fillStyle = 'rgba(230, 70, 70, 0.9)';
+            ctx.beginPath();
+            ctx.arc(screenX, screenY, enemy.radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = 'whit';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(enemy.username || 'Player', screenX, screenY - enemy.radius - 10);
+        }
+    });
+}
+
 function play() {
     if (!playing) return;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Distance from player to mouse
     const dx = mouseX - player.x;
     const dy = mouseY - player.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
 
-    // Distance from border center to player
     const bdx = player.x - backgroundBorder.x;
     const bdy = player.y - backgroundBorder.y;
-    const bd_dist = Math.sqrt((bdx * bdx) + (bdy * bdy))
+    const bd_dist = Math.sqrt((bdx * bdx) + (bdy * bdy));
 
-    // Broadcast coordinates to other players
     sendCoords(bdx, bdy, player.radius);
-    spawn_others()
 
-    // Move background border relative to player
     if (distance > 0) {
         if (bd_dist < backgroundBorder.radius) {
             backgroundBorder.x -= (dx / distance) * speed;
             backgroundBorder.y -= (dy / distance) * speed;
         } else {
-            player.respawn()
+            player.respawn();
         }
     }
     
     backgroundBorder.drawBorder();
-    
     control_food(dx, dy, distance);
-    
     player.drawPlayer();
+    spawn_others(bdx, bdy);
     
     requestAnimationFrame(play);
-}
+};
 
 getCoords();
+console.log(players);
 play();
