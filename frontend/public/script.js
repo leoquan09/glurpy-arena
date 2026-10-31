@@ -97,7 +97,8 @@ window.addEventListener('mousemove', (e) => {
 window.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
         playing = !playing;
-        if (playing) play()
+        if (playing) { play() } 
+        else { window.location.href = "/pause"; }
     };
 });
 
@@ -171,7 +172,7 @@ function control_food(dx, dy, distance) {
     })
 };
 
-// ================================ socket code ================================
+// ================================ socket code ================================ //
 const socket = io();
 let id = null;
 let players = []
@@ -206,6 +207,10 @@ function getCoords() {
         };
         console.log(data)
     });
+    
+    socket.on('disconnection', (user_id) => {
+        players = players.filter(p => p.id !== user_id);
+    });
 };
 
 function spawn_others(bdx, bdy) {
@@ -219,7 +224,7 @@ function spawn_others(bdx, bdy) {
             ctx.arc(screenX, screenY, enemy.radius, 0, Math.PI * 2);
             ctx.fill();
 
-            ctx.fillStyle = 'whit';
+            ctx.fillStyle = 'white';
             ctx.font = '14px Arial';
             ctx.textAlign = 'center';
             ctx.fillText(enemy.username || 'Player', screenX, screenY - enemy.radius - 10);
