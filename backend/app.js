@@ -40,12 +40,17 @@ io.on('connection', (socket) => {
 });
 
 async function checkPing() {
-    const host = 'google.com';
-    const res = await ping.promise.probe(host, {
-        timeout: 10,
-    });
-
-    return res;
+    const url = 'https://google.com';
+    const start = performance.now();
+    
+    try {
+        await fetch(url, { method: 'HEAD', signal: AbortSignal.timeout(3000) });
+        const end = performance.now();
+        return (end - start); 
+    } catch (error) {
+        console.error("Latency check failed:", error.message);
+        return 0; 
+    }
 }
 
 app.get('/', async (req, res) => {
