@@ -32,7 +32,7 @@ function random_respawn_coords() {
 
 // =============================== VARIABLES =============================== //
 const form = document.getElementsByClassName('play-form');
-const username = localStorage.getItem('username') ? localStorage.getItem('username') : alert('No username detected');
+const username = localStorage.getItem('username');
 
 let mouseX = 0;
 let mouseY = 0;

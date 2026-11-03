@@ -7,6 +7,8 @@ const app = express();
 const server = createServer(app);
 const io = new Server(server);
 
+let amountOfPlayers = 0;
+
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: true }));
 app.set('views', path.join(__dirname, '..', 'frontend'));
@@ -17,6 +19,7 @@ const ping = require('ping');
 
 io.on('connection', (socket) => {
     console.log('a user connected');
+    amountOfPlayers += 1;
     
     socket.on('screen refresh', (data) => {
         socket.broadcast.emit('player update', {
@@ -26,27 +29,28 @@ io.on('connection', (socket) => {
             borderY: data.borderY,
             radius: data.radius
         });
-        console.log(data)
+        console.log(data);
     });
 
     socket.on('disconnect', () => {
         console.log(`${socket.id} disconnected`);
         socket.broadcast.emit('disconnection', socket.id);
+        amountOfPlayers -= 1;
     });
 });
 
 async function checkPing() {
     const host = 'google.com';
     const res = await ping.promise.probe(host, {
-        timeout: 10, // seconds
+        timeout: 10,
     });
 
     return res;
 }
 
 app.get('/', async (req, res) => {
-    const pingStatus = await checkPing()
-    res.render('home', {ping: pingStatus.time.toFixed(2)})
+    const pingStatus = await checkPing();
+    res.render('home', {ping: pingStatus.time.toFixed(2), numOnline: amountOfPlayers });
 });
 
 app.get('/game', (req, res) => {
