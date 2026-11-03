@@ -54,8 +54,11 @@ async function checkPing() {
 }
 
 app.get('/', async (req, res) => {
-    const pingStatus = await checkPing();
-    res.render('home', {ping: pingStatus.time.toFixed(2), numOnline: amountOfPlayers });
+    const pingStatus = await checkPing(); 
+    res.render('home', { 
+        ping: pingStatus.toFixed(2), 
+        numOnline: amountOfPlayers 
+    });
 });
 
 app.get('/game', (req, res) => {
