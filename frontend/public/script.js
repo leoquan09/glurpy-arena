@@ -7,38 +7,45 @@ canvas.height = window.innerHeight;
 // =============================== PLAYER FORMULAS =============================== //
 
 function expand_radius() {
-    // Pieces of food eaten
-    let expand_by = 2*(Math.pow(0.01, 0.005*count))
-    count += 1
-    return expand_by
+    const foodMass = 15; 
+    const currentArea = Math.PI * player.radius * player.radius;
+    const newArea = currentArea + foodMass;
+    const newRadius = Math.sqrt(newArea / Math.PI);
+
+    return newRadius - player.radius;
 }
 
 function change_speed() {
-    speed = 5 * (Math.pow(0.99, 0.1*count))
+    speed = Math.max(2, 5 * (Math.pow(0.99, 0.1 * count)));
 }
 
 function random_respawn_coords() {
-    backgroundBorder.x = Math.random() * backgroundBorder.radius;
-    backgroundBorder.y = Math.random() * backgroundBorder.radius;
+    let bd_dist = 0;
+    let attempts = 0;
+    do {
+        const angle = Math.random() * Math.PI * 2;
+        const dist = Math.random() * (backgroundBorder.radius * 0.7);
+        backgroundBorder.x = player.x + Math.cos(angle) * dist;
+        backgroundBorder.y = player.y + Math.sin(angle) * dist;
 
-    const bdx = player.x - backgroundBorder.x;
-    const bdy = player.y - backgroundBorder.y;
-    const bd_dist = Math.sqrt((bdx * bdx) + (bdy * bdy))
-
-    if (bd_dist >= backgroundBorder.radius) {
-        random_respawn_coords()
-    }
+        const bdx = player.x - backgroundBorder.x;
+        const bdy = player.y - backgroundBorder.y;
+        bd_dist = Math.sqrt((bdx * bdx) + (bdy * bdy));
+        
+        attempts++;
+        if (attempts > 100) break;
+    } while (bd_dist >= backgroundBorder.radius);
 }
 
 // =============================== VARIABLES =============================== //
-const form = document.getElementsByClassName('play-form');
-const username = localStorage.getItem('username');
-
-let mouseX = 0;
-let mouseY = 0;
-
+const username = localStorage.getItem('username') || 'Player';
+let mouseX = window.innerWidth / 2;
+let mouseY = window.innerHeight / 2;
 let speed = 5;
+let count = 0;
 let playing = true;
+let food = [];
+const pieces_on_screen = 20;
 
 let backgroundBorder = {
     x: innerWidth / 2,
@@ -71,17 +78,23 @@ const player = {
     respawn: () => {
         playing = false;
         alert("Respawning...");
-        random_respawn_coords()
-        playing = true
+        random_respawn_coords();
+        playing = true;
+        requestAnimationFrame(play);
+    },
+    resetRadius: () => {
+        player.radius = 50;
+        console.log('radius changed');
     }
-}
+};
 
-// Food managment
-let food = []
-let pieces_on_screen = 20
-count = 0
 
 // =============================== EVENT LISTENERS =============================== //
+
+window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+});
 
 // Follow mouse position
 window.addEventListener('mousemove', (e) => {
@@ -98,7 +111,6 @@ window.addEventListener('keydown', (event) => {
         else { window.location.href = "/"; }
     };
 });
-
 
 
 // =============================== RESET OFF-SCREEN FOOD COORDS f(x) =============================== //
@@ -123,51 +135,65 @@ function check_off_screen_food(item) {
 // =============================== CONTROL FOOD f(x) =============================== //
 
 function control_food(dx, dy, distance) {
-    curr_on_screen = 20 - food.length;
+    let curr_on_screen = pieces_on_screen - food.length;
 
-    // Add new dots if 20 aren't on screen
-    while (curr_on_screen != 0) {
-        const random_x = Math.random() * window.innerWidth;
-        const random_y = Math.random() * window.innerHeight;
+    while (curr_on_screen > 0) {
+        let random_x, random_y, dist_to_player;
+        let spawnAttempts = 0;
         
-        food.push(
-            {
-                x: random_x,
-                y: random_y,
-                color: `rgb(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255})`
-            }
-        );
-        curr_on_screen -= 1;
-    };
-    
+        do {
+            random_x = Math.random() * window.innerWidth;
+            random_y = Math.random() * window.innerHeight;
+            const fdx = random_x - player.x;
+            const fdy = random_y - player.y;
+            dist_to_player = Math.sqrt(fdx * fdx + fdy * fdy);
+            
+            spawnAttempts++;
+            if (spawnAttempts > 50) break; 
+        } while (dist_to_player < player.radius + 20); 
 
-    // Eat food
+        food.push({
+            x: random_x,
+            y: random_y,
+            color: `rgb(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)})`
+        });
+        curr_on_screen -= 1;
+    }
+    
+    let totalGrowth = 0;
+
     food = food.filter((item) => {
         check_off_screen_food(item);
-        fdx = item.x - player.x
-        fdy = item.y - player.y
+        let fdx = item.x - player.x;
+        let fdy = item.y - player.y;
 
-        distance_from_player = Math.sqrt(fdx * fdx + fdy * fdy)
+        let distance_from_player = Math.sqrt(fdx * fdx + fdy * fdy);
 
-        // If food is outside player body
-        if (distance_from_player > player.radius) {
-            item.x -= (dx / distance) * speed;
-            item.y -= (dy / distance) * speed;
+        if (distance_from_player > player.radius + 10) { // +10 accounts for food radius
+            if (distance > 0) {
+                item.x -= (dx / distance) * speed;
+                item.y -= (dy / distance) * speed;
+            }
+            return true;
         } else {
-            player.radius += expand_radius()
-            change_speed()
-            return false
+            totalGrowth += expand_radius();
+            count += 1;
+            return false; // Remove food item
         }
-        return true
     });
+
+    if (totalGrowth > 0) {
+        player.radius += totalGrowth;
+        change_speed();
+    }
 
     food.forEach((item) => {
         ctx.fillStyle = item.color;
-        ctx.beginPath()
-        ctx.arc(item.x, item.y, 10, 0, Math.PI * 2)
-        ctx.fill()
-    })
-};
+        ctx.beginPath();
+        ctx.arc(item.x, item.y, 10, 0, Math.PI * 2);
+        ctx.fill();
+    });
+}
 
 // ================================ socket code ================================ //
 const socket = io();
