@@ -25,15 +25,19 @@
             </button>
         </form>
         <div class="card-footer">
-            <div class="stat"><span class="label">PLAYERS ONLINE</span> <span class="val"><%= numOnline %></span></div>
-            <div class="stat"><span class="label">PING</span> <span class="val"><%= ping %></span></div>
+            <div class="stat"><span class="label">PLAYERS ONLINE</span> <span class="val" id="online-counter"><%= numOnline %></span></div>
+            <div class="stat"><span class="label">PING</span> <span class="val" id="ping-counter">Connecting...</span></div>
         </div>
     </div>
 
+    <!-- 💡 Include the Socket.io client script provided by your Express server -->
+    <script src="/socket.io/socket.io.js"></script>
     <script>
         const form = document.querySelector('.play-form');
         const usernameInput = document.getElementById('username');
+        const pingCounter = document.getElementById('ping-counter');
 
+        // Restore saved username
         const savedUsername = localStorage.getItem('username');
         if (savedUsername) {
             usernameInput.value = savedUsername;
@@ -42,6 +46,20 @@
         form.addEventListener('submit', () => {
             localStorage.setItem('username', usernameInput.value);
         });
+
+        // 🚀 Real-time Client Ping Loop
+        const socket = io();
+
+        setInterval(() => {
+            const startTime = performance.now();
+            
+            socket.emit('ping');
+            
+            socket.once('pong', () => {
+                const latency = Math.floor(performance.now() - startTime);
+                pingCounter.innerText = `${latency} ms`;
+            });
+        }, 2000); // Check latency every 2 seconds
     </script>
 </body>
 </html>
