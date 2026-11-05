@@ -15,11 +15,13 @@ app.set('views', path.join(__dirname, '..', 'frontend'));
 app.use(express.static(path.join(__dirname, '..', 'frontend', 'public')));
 
 
-const ping = require('ping');
-
 io.on('connection', (socket) => {
     console.log('a user connected');
     amountOfPlayers += 1;
+
+    socket.on('ping', () => {
+        socket.emit('pong');
+    });
     
     socket.on('screen refresh', (data) => {
         socket.broadcast.emit('player update', {
@@ -39,24 +41,8 @@ io.on('connection', (socket) => {
     });
 });
 
-async function checkPing() {
-    const url = 'https://google.com';
-    const start = performance.now();
-    
-    try {
-        await fetch(url, { method: 'HEAD', signal: AbortSignal.timeout(3000) });
-        const end = performance.now();
-        return (end - start); 
-    } catch (error) {
-        console.error("Latency check failed:", error.message);
-        return 0; 
-    }
-}
-
 app.get('/', async (req, res) => {
-    const pingStatus = await checkPing(); 
     res.render('home', { 
-        ping: pingStatus.toFixed(2), 
         numOnline: amountOfPlayers 
     });
 });
