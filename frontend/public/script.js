@@ -80,7 +80,6 @@ const player = {
         alert("Respawning...");
         random_respawn_coords();
         playing = true;
-        requestAnimationFrame(play);
     },
     resetRadius: () => {
         player.radius = 50;
@@ -237,6 +236,26 @@ function getCoords() {
     });
 };
 
+function check_alive(bdx, bdy) {
+    players.forEach((enemy) => {
+        if (!enemy.radius) return;
+
+        const dx = enemy.borderX - bdx;
+        const dy = enemy.borderY - bdy;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < player.radius) {
+            if (player.radius > enemy.radius * 1.1) { 
+                socket.emit('disconnection', enemy.id); 
+            } else if (enemy.radius > player.radius * 1.1) {
+                socket.emit('disconnection', id);
+                player.respawn();
+                return false;
+            }
+        }
+    });
+};
+
 function spawn_others(bdx, bdy) {
     players.forEach((enemy) => {
         const screenX = player.x + (enemy.borderX - bdx);
@@ -255,6 +274,8 @@ function spawn_others(bdx, bdy) {
         }
     });
 }
+
+// ============================================== game loop ============================================== //
 
 function play() {
     if (!playing) return;
@@ -282,10 +303,11 @@ function play() {
     
     backgroundBorder.drawBorder();
     control_food(dx, dy, distance);
+    check_alive();
     player.drawPlayer();
     spawn_others(bdx, bdy);
     
-    requestAnimationFrame(play);``
+    requestAnimationFrame(play);
 };
 
 getCoords();
