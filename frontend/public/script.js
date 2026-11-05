@@ -233,6 +233,7 @@ function getCoords() {
     
     socket.on('disconnection', (user_id) => {
         players = players.filter(p => p.id !== user_id);
+        spawn_others();
     });
 };
 
